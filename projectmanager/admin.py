@@ -1,11 +1,12 @@
 from django.contrib import admin
-from .models import Team, Membership, Project
+from .models import (
+        Team, Membership, Project, Task, SubTask
+        )
 
 # Register your models here.
 
 
 class TeamAdmin(admin.ModelAdmin):
-    fields = ('name',)
     list_display = ('name',)
 
 
@@ -17,6 +18,16 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'team', 'endDate')
 
 
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('name', 'project', 'startDate', 'endDate')
+
+
+class SubTaskAdmin(admin.ModelAdmin):
+    list_display = ('name', 'task', 'startDate', 'endDate')
+
+
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Membership, MembershipAdmin)
 admin.site.register(Project, ProjectAdmin)
+admin.site.register(Task, TaskAdmin)
+admin.site.register(SubTask, SubTaskAdmin)

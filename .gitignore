@@ -1,4 +1,7 @@
 migrations
+# Media files
+media/*
+!media/avatar/default.png
 
 # User files
 .DS_Store
