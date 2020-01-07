@@ -5,6 +5,7 @@ djangorestframework-simplejwt==4.4.0
 mysql-connector-python==8.0.18
 Pillow==7.0.0
 protobuf==3.11.2
+psycopg2==2.8.4
 PyJWT==1.7.1
 PyMySQL==0.9.3
 python-dotenv==0.10.3

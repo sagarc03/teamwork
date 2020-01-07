@@ -76,7 +76,7 @@ WSGI_APPLICATION = 'teamwork.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'HOST': os.getenv('DB_HOST'),
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
