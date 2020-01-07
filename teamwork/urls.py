@@ -22,11 +22,12 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from projectmanager.views import ProjectViewSet, TaskViewSet
+from projectmanager.views import ProjectViewSet, TaskViewSet, SubTaskViewSet
 
 router = routers.DefaultRouter()
 router.register(r'project', ProjectViewSet)
 router.register(r'task', TaskViewSet)
+router.register(r'subtask', SubTaskViewSet)
 
 urlpatterns = [
     path('api/v1/', include(router.urls)),

@@ -65,7 +65,7 @@ class SubTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubTask
-        feilds = '__all__'
+        fields = '__all__'
 
     def create(self, validated_data):
         instance = SubTask(**validated_data)
