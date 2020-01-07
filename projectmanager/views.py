@@ -44,7 +44,6 @@ class ProjectViewSet(viewsets.ViewSet):
                                         validated_data['endDate'],
                                         '%Y-%m-%d'
                                         ).date()
-
         serializer = ProjectSerializer()
         newInstance = serializer.update(instance, validated_data)
         serializer = ProjectSerializer(newInstance)
@@ -71,34 +70,20 @@ class TaskViewSet(viewsets.ViewSet):
     queryset = Task.objects.all()
 
     def list(self, request):
-        if 'project' not in request.headers:
-            return Response(
-                    data={'message': 'project id missing from the header'},
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+        project = self.validate_and_retrive_project(request)
 
-        membership = Membership.objects.filter(user=request.user).first()
-        project = Project.objects.filter(pk=request.headers['project']).first()
-
-        if membership.team != project.team:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if isinstance(project, Response):
+            return project
 
         task = Task.objects.filter(project=project).all()
         serializer = TaskSerializer(task, many=True)
         return Response(data=serializer.data)
 
     def create(self, request):
-        if 'project' not in request.data:
-            return Response(
-                    data={'message': 'project id missing'},
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+        project = self.validate_and_retrive_project(request)
 
-        membership = Membership.objects.filter(user=request.user).first()
-        project = Project.objects.filter(pk=request.data['project']).first()
-
-        if membership.team != project.team:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if isinstance(project, Response):
+            return project
 
         validated_data = request.data
         validated_data['endDate'] = datetime.strptime(
@@ -117,40 +102,13 @@ class TaskViewSet(viewsets.ViewSet):
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, pk=None):
-        if 'project' not in request.headers:
-            return Response(
-                    data={'message': 'project id missing from header'},
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
-
-        membership = Membership.objects.filter(user=request.user).first()
-        project = Project.objects.filter(pk=request.headers['project']).first()
-
-        if membership.team != project.team:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        task = Task.objects.filter(project=project).all()
-        instance = get_object_or_404(task, pk=pk)
+        instance = self.get_instance(request, pk=pk)
         serializer = TaskSerializer(instance)
         return Response(data=serializer.data)
 
     def update(self, request, pk=None):
-        if 'project' not in request.data:
-            return Response(
-                    data={'message': 'project id missing'},
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
-
-        membership = Membership.objects.filter(user=request.user).first()
-        project = Project.objects.filter(pk=request.data['project']).first()
-
-        if membership.team != project.team:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         validated_data = request.data
-        task = Task.objects.filter(project=project).all()
-        instance = get_object_or_404(task, pk=pk)
-
+        instance = self.get_instance(request, pk=pk)
         if 'endDate' in validated_data:
             validated_data['endDate'] = datetime.strptime(
                                         validated_data['endDate'],
@@ -161,7 +119,6 @@ class TaskViewSet(viewsets.ViewSet):
                                         validated_data['startDate'],
                                         '%Y-%m-%d'
                                         ).date()
-
         serializer = TaskSerializer()
         newInstance = serializer.update(instance, validated_data)
         serializer = TaskSerializer(newInstance)
@@ -171,19 +128,35 @@ class TaskViewSet(viewsets.ViewSet):
         return self.update(request, pk)
 
     def destroy(self, request, pk=None):
-        if 'project' not in request.headers:
+        instance = self.get_instance(request, pk=pk)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def validate_and_retrive_project(self, request):
+        if 'project' not in request.headers and 'project' not in request.data:
             return Response(
-                    data={'message': 'project id missing from the header'},
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+                        data={'message': 'project id missing from the header'},
+                        status=status.HTTP_400_BAD_REQUEST
+                        )
 
         membership = Membership.objects.filter(user=request.user).first()
-        project = Project.objects.filter(pk=request.headers['project']).first()
+        if 'project' in request.data:
+            pk = request.data['project']
+        else:
+            pk = request.headers['project']
+
+        project = Project.objects.filter(pk=pk).first()
 
         if membership.team != project.team:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
+        return project
+
+    def get_instance(self, request, pk=None):
+        project = self.validate_and_retrive_project(request)
+
+        if isinstance(project, Response):
+            return project
+
         task = Task.objects.filter(project=project).all()
-        instance = get_object_or_404(task, pk=pk)
-        instance.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return get_object_or_404(task, pk=pk)
