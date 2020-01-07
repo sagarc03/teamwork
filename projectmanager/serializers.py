@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Team
+from .models import Project, Task, SubTask
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -36,5 +36,47 @@ class ProjectSerializer(serializers.ModelSerializer):
                                     'description', instance.description)
         instance.endDate = validated_data.get('endDate', instance.endDate)
         instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.save()
+        return instance
+
+
+class TaskSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Task
+        fields = '__all__'
+
+    def create(self, validated_data):
+        instance = Task(**validated_data)
+        instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get(
+                                    'description', instance.description)
+        instance.endDate = validated_data.get('startDate', instance.endDate)
+        instance.endDate = validated_data.get('endDate', instance.endDate)
+        instance.save()
+        return instance
+
+
+class SubTaskSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SubTask
+        feilds = '__all__'
+
+    def create(self, validated_data):
+        instance = SubTask(**validated_data)
+        instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get(
+                                    'description', instance.description)
+        instance.endDate = validated_data.get('startDate', instance.endDate)
+        instance.endDate = validated_data.get('endDate', instance.endDate)
         instance.save()
         return instance
