@@ -25,8 +25,7 @@ SECRET_KEY = 'qw=n_kk!l5gi^@!f_5#u0naqtc=l+6bx=wt-b)#gozd+^o#ph%'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [u'www.sagarchavan.com']
-
+ALLOWED_HOSTS = [u'www.sagarchavan.com', '127.0.0.1']
 
 # Application definition
 
@@ -37,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'projectmanager'
 ]
 
 MIDDLEWARE = [
