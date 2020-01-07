@@ -22,8 +22,10 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from projectmanager.views import ProjectViewSet
 
 router = routers.DefaultRouter()
+router.register(r'project', ProjectViewSet)
 
 urlpatterns = [
     path('api/v1/', include(router.urls)),

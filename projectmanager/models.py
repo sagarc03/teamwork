@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
 
 # Create your models here.
 
@@ -28,7 +29,7 @@ class Project(models.Model):
 
     @property
     def duration(self):
-        return (models.datetime.datetime.today() - self.endDate).days
+        return (self.endDate - datetime.today().date()).days
 
     def __str__(self):
         return self.name
