@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Team, Membership
+from .models import Team, Membership, Project
 
 # Register your models here.
 
@@ -13,5 +13,10 @@ class MembershipAdmin(admin.ModelAdmin):
     list_display = ('user', 'team')
 
 
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ('name', 'team', 'endDate')
+
+
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Membership, MembershipAdmin)
+admin.site.register(Project, ProjectAdmin)
