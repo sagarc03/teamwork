@@ -6,6 +6,7 @@ mysql-connector-python==8.0.18
 Pillow==7.0.0
 protobuf==3.11.2
 PyJWT==1.7.1
+PyMySQL==0.9.3
 python-dotenv==0.10.3
 pytz==2019.3
 six==1.13.0
