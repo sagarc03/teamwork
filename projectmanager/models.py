@@ -27,10 +27,6 @@ class Project(models.Model):
                 )
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
 
-    @property
-    def duration(self):
-        return (self.endDate - datetime.today().date()).days
-
     def __str__(self):
         return self.name
 

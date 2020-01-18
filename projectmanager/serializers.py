@@ -3,7 +3,6 @@ from .models import Project, Task, SubTask
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    duration = serializers.IntegerField()
 
     class Meta:
         model = Project
@@ -11,7 +10,6 @@ class ProjectSerializer(serializers.ModelSerializer):
                 'id',
                 'name',
                 'description',
-                'duration',
                 'endDate',
                 'avatar',
                 'team'
