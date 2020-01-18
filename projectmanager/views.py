@@ -7,6 +7,17 @@ from .models import Project, Membership, Task
 from .serializers import ProjectSerializer, TaskSerializer
 from datetime import datetime
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def getUser(request):
+    print(dir(request.user))
+    data = {}
+    data['username'] = request.user.username
+    data['first_name'] = request.user.first_name
+    data['last_name'] = request.user.first_name
+    data['email'] = request.user.email
+    return Response(data=data, status=status.HTTP_200_OK)
+
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticated])
 def projects(request):
