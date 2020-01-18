@@ -1,69 +1,70 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions
 from .models import Project, Membership, Task, SubTask
 from .serializers import ProjectSerializer, TaskSerializer, SubTaskSerializer
 from datetime import datetime
-# Create your views here.
 
-
-class ProjectViewSet(viewsets.ViewSet):
-    queryset = Project.objects.all()
-
-    def list(self, request):
-        projects = self.get_team_projects(request)
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
+def projects_view(request):
+    membership = Membership.objects.filter(user=request.user).first()
+    if request.method == 'GET':
+        projects = Project.objects.filter(team=membership.team).all()
         serializer = ProjectSerializer(projects, many=True)
-        return Response(data=serializer.data)
-
-    def create(self, request):
-        validated_data = request.data
-        membership = Membership.objects.filter(user=request.user).first()
-        validated_data['team'] = membership.team
-        validated_data['endDate'] = datetime.strptime(
-                                        validated_data['endDate'],
+    elif request.method == 'POST':
+        data = {}
+        try:
+            data['name'] = request.data['name']
+            data['description'] = request.data['description']
+            data['endDate'] = datetime.strptime(
+                                        request.data['endDate'],
                                         '%Y-%m-%d'
                                         ).date()
-        if 'avatar' not in validated_data:
-            validated_data['avatar'] = None
+            data['team'] = membership.team
+            if 'avatar' not in request.data:
+                data['avatar'] = None
+            else:
+                data['avatar'] = request.data['avatar']
+        except Exception as e:
+            print(e)
+            return Response(
+                {"message": "Invalid or Missing fields"},
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
-        serializer = ProjectSerializer()
-        newInstance = serializer.create(validated_data)
-        serializer = ProjectSerializer(newInstance)
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        project = Project(**data)
+        project.save()
+        serializer = ProjectSerializer(project)
+    return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-    def retrieve(self, request, pk=None):
-        instance = self.get_instance(request, pk=pk)
-        serializer = ProjectSerializer(instance)
-        return Response(data=serializer.data)
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def project_view(request, pk=None):
+    membership = Membership.objects.filter(user=request.user).first()
+    projects = Project.objects.filter(team=membership.team).all()
+    project = get_object_or_404(projects, pk=pk)
 
-    def update(self, request, pk=None):
-        validated_data = request.data
-        instance = self.get_instance(request, pk=pk)
-        if 'endDate' in validated_data:
-            validated_data['endDate'] = datetime.strptime(
-                                        validated_data['endDate'],
-                                        '%Y-%m-%d'
-                                        ).date()
-        serializer = ProjectSerializer()
-        newInstance = serializer.update(instance, validated_data)
-        serializer = ProjectSerializer(newInstance)
-        return Response(data=serializer.data)
-
-    def partial_update(self, request, pk=None):
-        return self.update(request, pk)
-
-    def destroy(self, request, pk=None):
-        instance = self.get_instance(request, pk=pk)
-        instance.delete()
+    if request.method == 'DELETE':
+        project.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def get_team_projects(self, request):
-        membership = Membership.objects.filter(user=request.user).first()
-        return Project.objects.filter(team=membership.team).all()
+    if request.method == 'PATCH' or request.method == 'PUT':
+        project.name = request.data.getitem('name', project.name)
+        project.description = request.data.getItem(
+                                    'description', project.description
+                                    )
+        if 'endDate' in request.data:
+            project.endDate = datetime.strptime(
+                    request.data['endDate'],
+                    '%Y-%m-%d'
+                    ).date()
+        project.save()
 
-    def get_instance(self, request, pk=None):
-        projects = self.get_team_projects(request)
-        return get_object_or_404(projects, pk=pk)
+    serializer = ProjectSerializer(project)
+    return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class TaskViewSet(viewsets.ViewSet):

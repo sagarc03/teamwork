@@ -17,22 +17,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from rest_framework import routers
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-from projectmanager.views import ProjectViewSet, TaskViewSet, SubTaskViewSet
+from projectmanager import urls
 
-router = routers.DefaultRouter()
-router.register(r'project', ProjectViewSet)
-router.register(r'task', TaskViewSet)
-router.register(r'subtask', SubTaskViewSet)
 
 urlpatterns = [
-    path('api/v1/', include(router.urls)),
-    path('api/v1/token/', TokenObtainPairView.as_view()),
-    path('api/token/refresh/', TokenRefreshView.as_view()),
+    path('api/v1/', include(urls.urlpatterns)),
     path('admin/', admin.site.urls),
 ]
 urlpatterns += static(
