@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
+from . import helper    
 
 # Create your models here.
 
@@ -22,7 +23,7 @@ class Project(models.Model):
     description = models.TextField()
     endDate = models.DateField()
     avatar = models.ImageField(
-                upload_to='avatar/',
+                upload_to=helper.path_and_rename,
                 default='avatar/default.png'
                 )
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
