@@ -3,8 +3,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
-from .models import Project, Membership, Task
-from .serializers import ProjectSerializer, TaskSerializer
+from .models import Project, Membership, Task, ToDo
+from .serializers import ProjectSerializer, TaskSerializer, ToDoSerializer
 from datetime import datetime
 
 @api_view(['GET'])
@@ -55,8 +55,7 @@ def projects(request):
 @permission_classes([permissions.IsAuthenticated])
 def project_view(request, pk=None):
     membership = Membership.objects.filter(user=request.user).first()
-    projects = Project.objects.filter(team=membership.team).all()
-    project = get_object_or_404(projects, pk=pk)
+    project = get_object_or_404(Project, pk=pk)
 
     if request.method == 'DELETE':
         project.delete()
@@ -80,8 +79,9 @@ def project_view(request, pk=None):
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticated])
 def project_tasks(request, pk):
-    project = Project.objects.filter(pk=pk).first()
+    project = get_object_or_404(Project, pk=pk)
     membership = Membership.objects.filter(user=request.user).first()
+
     if membership.team != project.team:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
     
@@ -116,13 +116,12 @@ def project_tasks(request, pk):
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([permissions.IsAuthenticated])
 def project_task_view(request, projpk, pk):
-    project = Project.objects.filter(pk=projpk).first()
+    project = get_object_or_404(Project, pk=pk)
     membership = Membership.objects.filter(user=request.user).first()
     if membership.team != project.team:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
     
-    tasks = Task.objects.filter(project=project).all()
-    task = get_object_or_404(tasks, pk=pk)
+    task = get_object_or_404(Task, pk=pk)
 
     if request.method == 'DELETE':
         task.delete()
@@ -147,3 +146,62 @@ def project_task_view(request, projpk, pk):
 
     serializer = TaskSerializer(task)
     return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAuthenticated])
+def project_task_todos(request, projpk, taskpk):
+    project = get_object_or_404(Project, pk=projpk)
+    membership = Membership.objects.filter(user=request.user).first()
+    if membership.team != project.team:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    
+    task = get_object_or_404(Task, pk=taskpk)
+
+    if request.method == 'GET':
+        todos = ToDo.objects.filter(task=task)
+        serializer = ToDoSerializer(todos, many=True)
+    elif request.method == 'POST':
+        try:
+            data = {}
+            data['todo'] = request.data['todo']
+            if 'status' not in request.data:
+                data['status'] = False
+            else:
+                data['status'] = request.data['status']
+            data['task'] = task
+
+            todo = ToDo(**data)
+            todo.save()
+            serializer = ToDoSerializer(todo)
+        except Exception as e:
+            print(e)
+            return Response(
+                {"message": "Invalid or Missing fields"},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+    return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def project_task_todo_view(request, projpk, taskpk, pk):
+    project = get_object_or_404(Project, pk=projpk)
+    membership = Membership.objects.filter(user=request.user).first()
+    if membership.team != project.team:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    
+    task = get_object_or_404(Task, pk=taskpk)
+    todos = ToDo.objects.filter(task=task)
+    todo = get_object_or_404(todos, pk=pk)
+
+    if request.method == 'DELETE':
+        todo.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    if request.method == 'PUT' or request.method == 'PATCH':
+        todo.todo = request.data.get('todo', todo.todo)
+        todo.status = request.data.get('status', todo.status)
+        todo.save()
+    
+    serializer = ToDoSerializer(todo)
+    return Response(data=serializer.data, status=status.HTTP_200_OK)
+

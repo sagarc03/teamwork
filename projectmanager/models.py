@@ -40,3 +40,11 @@ class Task(models.Model):
 
     def __str__(self):
         return self.name
+
+class ToDo(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    todo = models.TextField()
+    status = models.BooleanField()
+
+    def __str__(self):
+        return self.todo

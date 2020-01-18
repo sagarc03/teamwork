@@ -1,19 +1,12 @@
 from rest_framework import serializers
-from .models import Project, Task
+from .models import Project, Task, ToDo
 
 
 class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = (
-                'id',
-                'name',
-                'description',
-                'endDate',
-                'avatar',
-                'team'
-                )
+        fields = '__all__'
 
     def create(self, validated_data):
         project = Project(
@@ -55,5 +48,23 @@ class TaskSerializer(serializers.ModelSerializer):
                                     'description', instance.description)
         instance.endDate = validated_data.get('startDate', instance.endDate)
         instance.endDate = validated_data.get('endDate', instance.endDate)
+        instance.save()
+        return instance
+
+
+class ToDoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ToDo
+        fields = '__all__'
+
+    def create(self, validated_data):
+        instance = ToDo(**validated_data)
+        instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        instance.todo = validated_data.get('todo', instance.todo)
+        instance.status = validated_data.get('status', instance.status)
         instance.save()
         return instance
