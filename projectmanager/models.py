@@ -40,14 +40,3 @@ class Task(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class SubTask(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    name = models.CharField(max_length=30)
-    description = models.TextField()
-    startDate = models.DateField()
-    endDate = models.DateField()
-
-    def __str__(self):
-        return self.name

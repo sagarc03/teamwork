@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-        Team, Membership, Project, Task, SubTask
+        Team, Membership, Project, Task
         )
 
 # Register your models here.
@@ -22,12 +22,8 @@ class TaskAdmin(admin.ModelAdmin):
     list_display = ('name', 'project', 'startDate', 'endDate')
 
 
-class SubTaskAdmin(admin.ModelAdmin):
-    list_display = ('name', 'task', 'startDate', 'endDate')
-
 
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Membership, MembershipAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Task, TaskAdmin)
-admin.site.register(SubTask, SubTaskAdmin)

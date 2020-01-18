@@ -3,8 +3,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
-from .models import Project, Membership, Task, SubTask
-from .serializers import ProjectSerializer, TaskSerializer, SubTaskSerializer
+from .models import Project, Membership, Task
+from .serializers import ProjectSerializer, TaskSerializer
 from datetime import datetime
 
 @api_view(['GET', 'POST'])
@@ -136,95 +136,3 @@ def project_task_view(request, projpk, pk):
 
     serializer = TaskSerializer(task)
     return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-class SubTaskViewSet(viewsets.ViewSet):
-    queryset = SubTask.objects.all()
-
-    def list(self, request):
-        task = self.validate_and_retrive_task(request)
-
-        if isinstance(task, Response):
-            return task
-
-        subtask = SubTask.objects.filter(task=task).all()
-        serializer = SubTaskSerializer(subtask, many=True)
-        return Response(data=serializer.data)
-
-    def create(self, request):
-        task = self.validate_and_retrive_task(request)
-        if isinstance(task, Response):
-            return task
-
-        validated_data = request.data
-        validated_data['endDate'] = datetime.strptime(
-                                        validated_data['endDate'],
-                                        '%Y-%m-%d'
-                                        ).date()
-        validated_data['startDate'] = datetime.strptime(
-                                        validated_data['startDate'],
-                                        '%Y-%m-%d'
-                                        ).date()
-        validated_data['task'] = task
-
-        serializer = SubTaskSerializer()
-        newInstance = serializer.create(validated_data)
-        serializer = SubTaskSerializer(newInstance)
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-
-    def retrieve(self, request, pk=None):
-        instance = self.get_instance(request, pk=pk)
-        serializer = SubTaskSerializer(instance)
-        return Response(data=serializer.data)
-
-    def update(self, request, pk=None):
-        validated_data = request.data
-        instance = self.get_instance(request, pk=pk)
-        if 'endDate' in validated_data:
-            validated_data['endDate'] = datetime.strptime(
-                                        validated_data['endDate'],
-                                        '%Y-%m-%d'
-                                        ).date()
-        if 'startDate' in validated_data:
-            validated_data['startDate'] = datetime.strptime(
-                                        validated_data['startDate'],
-                                        '%Y-%m-%d'
-                                        ).date()
-        serializer = SubTaskSerializer()
-        newInstance = serializer.update(instance, validated_data)
-        serializer = SubTaskSerializer(newInstance)
-        return Response(data=serializer.data)
-
-    def partial_update(self, request, pk=None):
-        return self.update(request, pk)
-
-    def destroy(self, request, pk=None):
-        instance = self.get_instance(request, pk=pk)
-        instance.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def validate_and_retrive_task(self, request):
-        if 'task' not in request.headers and 'task' not in request.data:
-            return Response(
-                        data={'message': 'task id missing from the header'},
-                        status=status.HTTP_400_BAD_REQUEST
-                        )
-
-        membership = Membership.objects.filter(user=request.user).first()
-        if 'task' in request.data:
-            pk = request.data['task']
-        else:
-            pk = request.headers['task']
-
-        task = Task.objects.filter(pk=pk).first()
-
-        if membership.team != task.project.team:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        return task
-
-    def get_instance(self, request, pk=None):
-        task = self.validate_and_retrive_task(request)
-        if isinstance(task, Response):
-            return task
-        subtask = SubTask.objects.filter(task=task).all()
-        return get_object_or_404(subtask, pk=pk)

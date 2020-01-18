@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Task, SubTask
+from .models import Project, Task
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -46,27 +46,6 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         instance = Task(**validated_data)
-        instance.save()
-        return instance
-
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get(
-                                    'description', instance.description)
-        instance.endDate = validated_data.get('startDate', instance.endDate)
-        instance.endDate = validated_data.get('endDate', instance.endDate)
-        instance.save()
-        return instance
-
-
-class SubTaskSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = SubTask
-        fields = '__all__'
-
-    def create(self, validated_data):
-        instance = SubTask(**validated_data)
         instance.save()
         return instance
 
