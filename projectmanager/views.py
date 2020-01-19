@@ -35,9 +35,7 @@ def projects(request):
                                         '%Y-%m-%d'
                                         ).date()
             data['team'] = membership.team
-            if 'avatar' not in request.data:
-                data['avatar'] = None
-            else:
+            if 'avatar' in request.data:
                 data['avatar'] = request.data['avatar']
         except Exception as e:
             print(e)
